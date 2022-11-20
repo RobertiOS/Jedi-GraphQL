@@ -33,37 +33,58 @@
 import UIKit
 
 class FilmsViewController: UITableViewController {
-  var films: [String] = []
-
-  @IBSegueAction func showFilmDetails(_ coder: NSCoder, sender: Any?) -> FilmDetailsViewController? {
-    return nil
-  }
-
-  override func viewDidLoad() {
-    super.viewDidLoad()
-
-    loadData()
-  }
+    var films: [AllFilmsQuery.Data.AllFilm.Film] = []
+    
+    @IBSegueAction func showFilmDetails(_ coder: NSCoder, sender: Any?) -> FilmDetailsViewController? {
+        return nil
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        loadData()
+    }
 }
 
 extension FilmsViewController {
-  func loadData() {
-  }
+    func loadData() {
+        let query = AllFilmsQuery()
+        Apollo.shared.client.fetch(query: query) { [unowned self] result in
+            switch result {
+            case .success(let results):
+                if let films = results.data?.allFilms?.films?.compactMap { $0 } {
+                    self.films = films
+                    self.tableView.reloadData()
+                }
+            case .failure(let error):
+                debugPrint(error)
+            }
+        }
+    }
 }
 
 extension FilmsViewController {
-  override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    // swiftlint:disable:next force_unwrapping
-    let cell = tableView.dequeueReusableCell(withIdentifier: "FilmCell")!
-
-    return cell
-  }
-
-  override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    return films.count
-  }
-
-  override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-    return "Films"
-  }
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        // swiftlint:disable:next force_unwrapping
+        let cell = tableView.dequeueReusableCell(withIdentifier: "FilmCell")!
+        let film = films[indexPath.row]
+        if #available(iOS 14.0, *) {
+            var contentConfiguration = cell.defaultContentConfiguration()
+            contentConfiguration.text = film.title
+            cell.contentConfiguration = contentConfiguration
+        } else {
+            // Fallback on earlier versions
+            cell.textLabel?.text = film.title
+        }
+        
+        return cell
+    }
+    
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return films.count
+    }
+    
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        return "Films"
+    }
 }
