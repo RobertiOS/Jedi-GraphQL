@@ -48,7 +48,16 @@ class FilmDetailsViewController: UITableViewController {
     }
     
     @IBSegueAction func showCharacterDetails(_ coder: NSCoder, sender: Any?) -> CharacterDetailsViewController? {
-        return nil
+        guard
+          let cell = sender as? UITableViewCell,
+          let indexPath = tableView.indexPath(for: cell),
+          let character = film.characterConnection?.characters?[indexPath.row]
+          else {
+            return nil
+        }
+           
+        return CharacterDetailsViewController(character: character, coder: coder)
+
     }
     
     override func viewDidLoad() {
@@ -69,16 +78,16 @@ extension FilmDetailsViewController {
             let cell = tableView.dequeueReusableCell(withIdentifier: "FilmCell")!
             
             if indexPath.row == 0 {
-                cell.textLabel?.text = "Episode"
-                if let episodeNumber = film.episodeId {
-                    cell.detailTextLabel?.text = "\(episodeNumber)"
-                }
+              cell.textLabel?.text = "Episode"
+              if let episodeNumber = film.episodeId {
+                cell.detailTextLabel?.text = "\(episodeNumber)"
+              }
             } else if indexPath.row == 1 {
-                cell.textLabel?.text = "Released"
-                cell.detailTextLabel?.text = film.releaseDate
+              cell.textLabel?.text = "Released"
+              cell.detailTextLabel?.text = film.releaseDate
             } else if indexPath.row == 2 {
-                cell.textLabel?.text = "Director"
-                cell.detailTextLabel?.text = film.director
+              cell.textLabel?.text = "Director"
+              cell.detailTextLabel?.text = film.director
             }
             return cell
         case 1:
